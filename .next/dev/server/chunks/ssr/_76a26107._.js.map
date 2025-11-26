@@ -1,9 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 3, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/config.json"],"sourcesContent":["{\"fondo\":\"/uploads/PAGINAMB.mp4\",\"textoPrincipal\":\"¡Escanea el QR en tu mesa!\",\"colorTextoPrincipal\":\"white\",\"colorTextoSecundario\":\"yellow\",\"urlUpload\":\"/upload\",\"urlAdmin\":\"/admin\"}"],"names":[],"mappings":"AAAA"}},
-    {"offset": {"line": 3, "column": 209}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}},
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/mathi/Documents/fotify-clone/app/layout.jsx"],"sourcesContent":["import config from \"../config.json\"; // <<-- sube un nivel\r\n\r\nexport default function RootLayout({ children }) {\r\n  return (\r\n    <html lang=\"es\">\r\n      <body\r\n        style={{\r\n          margin: 0,\r\n          padding: 0,\r\n          fontFamily: \"sans-serif\",\r\n          backgroundColor: config.fondo,\r\n          color: \"white\",\r\n        }}\r\n      >\r\n        {children}\r\n      </body>\r\n    </html>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;AAAA,8IAAqC,qBAAqB;;;AAE3C,SAAS,WAAW,EAAE,QAAQ,EAAE;IAC7C,qBACE,8OAAC;QAAK,MAAK;kBACT,cAAA,8OAAC;YACC,OAAO;gBACL,QAAQ;gBACR,SAAS;gBACT,YAAY;gBACZ,iBAAiB,yFAAM,CAAC,KAAK;gBAC7B,OAAO;YACT;sBAEC;;;;;;;;;;;AAIT"}},
-    {"offset": {"line": 42, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/mathi/Documents/fotify-clone/node_modules/next/src/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-rsc']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,4HACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0]}}]
-}
