@@ -1,0 +1,8 @@
+{
+  "fondo": "/uploads/PAGINAMB.mp4",
+  "textoPrincipal": "¡Escanea el QR en tu mesa!",
+  "colorTextoPrincipal": "white",
+  "colorTextoSecundario": "yellow",
+  "urlUpload": "/upload",
+  "urlAdmin": "/admin"
+}
