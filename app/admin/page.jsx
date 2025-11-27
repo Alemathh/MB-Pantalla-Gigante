@@ -35,7 +35,11 @@ export default function AdminPage() {
       });
 
       const data = await res.json();
-      if (data.success) fetchPhotos();
+      if (data.success) {
+        fetchPhotos();
+      } else {
+        alert("No se pudo aprobar: " + data.error);
+      }
     } catch (err) {
       console.error(err);
       alert("Error aprobando la foto");
@@ -89,7 +93,6 @@ export default function AdminPage() {
         🖼️ Admin - Fotos
       </h1>
 
-      {/* Botón de QR */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <a
           href={config.urlQR || "/qr"}
@@ -108,7 +111,6 @@ export default function AdminPage() {
         </a>
       </div>
 
-      {/* Tabs */}
       <div
         style={{
           display: "flex",
@@ -122,11 +124,11 @@ export default function AdminPage() {
           style={{
             padding: "10px 20px",
             borderRadius: "8px",
-            border: "none",
-            cursor: "pointer",
             background: activeTab === "pendientes" ? "#0070f3" : "#e0e0e0",
             color: activeTab === "pendientes" ? "#fff" : "#555",
             fontWeight: "bold",
+            border: "none",
+            cursor: "pointer",
           }}
         >
           Pendientes
@@ -137,18 +139,18 @@ export default function AdminPage() {
           style={{
             padding: "10px 20px",
             borderRadius: "8px",
-            border: "none",
-            cursor: "pointer",
             background: activeTab === "aprobadas" ? "#0070f3" : "#e0e0e0",
             color: activeTab === "aprobadas" ? "#fff" : "#555",
             fontWeight: "bold",
+            border: "none",
+            cursor: "pointer",
           }}
         >
           Aprobadas
         </button>
       </div>
 
-      {/* LISTA DE PENDIENTES */}
+      {/* PENDIENTES */}
       {activeTab === "pendientes" && (
         <div
           style={{
@@ -166,7 +168,6 @@ export default function AdminPage() {
             <div key={idx} style={{ textAlign: "center" }}>
               <img
                 src={photo.url}
-                alt={`Pendiente ${idx + 1}`}
                 style={{
                   width: "150px",
                   height: "150px",
@@ -176,23 +177,16 @@ export default function AdminPage() {
                 }}
               />
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "10px",
-                  marginTop: "5px",
-                }}
-              >
+              <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
                 <button
                   onClick={() => aprobarFoto(photo.public_id)}
                   style={{
                     padding: "5px 10px",
+                    background: "#28a745",
+                    color: "#fff",
                     borderRadius: "6px",
                     border: "none",
                     cursor: "pointer",
-                    background: "#28a745",
-                    color: "#fff",
                   }}
                 >
                   Aprobar
@@ -202,11 +196,11 @@ export default function AdminPage() {
                   onClick={() => rechazarFoto(photo.public_id)}
                   style={{
                     padding: "5px 10px",
+                    background: "#dc3545",
+                    color: "#fff",
                     borderRadius: "6px",
                     border: "none",
                     cursor: "pointer",
-                    background: "#dc3545",
-                    color: "#fff",
                   }}
                 >
                   Rechazar
@@ -217,7 +211,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* LISTA DE APROBADAS */}
+      {/* APROBADAS */}
       {activeTab === "aprobadas" && (
         <div
           style={{
@@ -235,7 +229,6 @@ export default function AdminPage() {
             <div key={idx} style={{ textAlign: "center" }}>
               <img
                 src={photo.url}
-                alt={`Aprobada ${idx + 1}`}
                 style={{
                   width: "150px",
                   height: "150px",
@@ -250,11 +243,11 @@ export default function AdminPage() {
                 style={{
                   marginTop: "5px",
                   padding: "5px 10px",
+                  background: "#dc3545",
+                  color: "#fff",
                   borderRadius: "6px",
                   border: "none",
                   cursor: "pointer",
-                  background: "#dc3545",
-                  color: "#fff",
                 }}
               >
                 Borrar

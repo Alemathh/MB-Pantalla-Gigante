@@ -17,10 +17,17 @@ export async function GET(req) {
       .max_results(200)
       .execute();
 
-    const images = result.resources.map((img) => ({
-      url: img.secure_url,
-      public_id: img.public_id.replace(`${folder}/`, ""), // 👈 Sacamos el folder
-    }));
+    const images = result.resources.map((img) => {
+      // Sanear public_id aunque Cloudinary lo devuelva mal
+      const cleanId = img.public_id.includes("/")
+        ? img.public_id.split("/").pop()
+        : img.public_id;
+
+      return {
+        url: img.secure_url,
+        public_id: cleanId,
+      };
+    });
 
     return new Response(JSON.stringify({ success: true, images }), { status: 200 });
   } catch (err) {
