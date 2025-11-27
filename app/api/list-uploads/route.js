@@ -17,14 +17,18 @@ export async function GET(req) {
       .max_results(200)
       .execute();
 
+    // ✅ Mantener exacto public_id tal cual Cloudinary lo devuelve
     const images = result.resources.map((img) => ({
       url: img.secure_url,
-      public_id: img.public_id, // 🚨 Mantener exacto
+      public_id: img.public_id,
     }));
 
     return new Response(JSON.stringify({ success: true, images }), { status: 200 });
   } catch (err) {
     console.error("Error listando fotos:", err);
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({ success: false, error: err.message }),
+      { status: 500 }
+    );
   }
 }

@@ -8,7 +8,7 @@ cloudinary.config({
 
 export async function POST(req) {
   try {
-    let { public_id } = await req.json();
+    const { public_id } = await req.json();
 
     if (!public_id) {
       return new Response(
@@ -17,12 +17,11 @@ export async function POST(req) {
       );
     }
 
-    // Asegurarse de que parta de pending/
-    if (!public_id.startsWith("pending/")) {
-      public_id = `pending/${public_id}`;
-    }
-
-    const newId = public_id.replace(/^pending\//, "approved/");
+    // 🔹 Usar exactamente el public_id que devuelve list-uploads
+    // Reemplazar "pending/" por "approved/" solo si está presente
+    const newId = public_id.startsWith("pending/")
+      ? public_id.replace(/^pending\//, "approved/")
+      : `approved/${public_id.split("/").pop()}`;
 
     const result = await cloudinary.uploader.rename(public_id, newId, { overwrite: true });
 
