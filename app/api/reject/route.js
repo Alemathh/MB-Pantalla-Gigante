@@ -1,27 +1,25 @@
-import fs from "fs";
-import path from "path";
-import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req) {
   try {
-    const { src } = await req.json(); // recibir ruta relativa desde /uploads/pending/archivo.jpg
+    const { public_id } = await req.json(); // recibir public_id de la foto
 
-    if (!src) {
-      return NextResponse.json({ error: "No se proporcionó src" }, { status: 400 });
+    if (!public_id) {
+      return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    const fileName = path.basename(src);
-    const pendingPath = path.join(process.cwd(), "public/uploads/pending", fileName);
+    // Eliminar la imagen de Cloudinary
+    await cloudinary.uploader.destroy(public_id);
 
-    if (!fs.existsSync(pendingPath)) {
-      return NextResponse.json({ error: "Archivo no encontrado en pending" }, { status: 404 });
-    }
-
-    fs.unlinkSync(pendingPath); // borrar el archivo
-
-    return NextResponse.json({ success: true });
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
     console.error("Error rechazando foto:", err);
-    return NextResponse.json({ error: "Error rechazando foto" }, { status: 500 });
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
   }
 }

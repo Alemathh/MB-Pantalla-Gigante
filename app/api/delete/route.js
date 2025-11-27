@@ -1,26 +1,25 @@
-import fs from "fs";
-import path from "path";
-import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req) {
   try {
-    const { src } = await req.json();
-    const filePath = path.join(process.cwd(), "public", src);
+    const { public_id } = await req.json(); // recibir public_id de la foto
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      return NextResponse.json({ success: true });
-    } else {
-      return NextResponse.json(
-        { error: "Archivo no existe" },
-        { status: 404 }
-      );
+    if (!public_id) {
+      return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
+
+    // Eliminar la imagen de Cloudinary
+    await cloudinary.uploader.destroy(public_id);
+
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {
-    console.error("Error borrando archivo:", err);
-    return NextResponse.json(
-      { error: "Error borrando archivo" },
-      { status: 500 }
-    );
+    console.error("Error borrando foto:", err);
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
   }
 }

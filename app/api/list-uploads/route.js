@@ -1,28 +1,30 @@
-import fs from "fs";
-import path from "path";
-import { NextResponse } from "next/server";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const folder = searchParams.get("folder") === "pending" ? "pending" : "";
-    const uploadDir = path.join(process.cwd(), "public/uploads", folder);
+    const folder = searchParams.get("folder") === "pending" ? "pending" : "approved";
 
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    const result = await cloudinary.search
+      .expression(`folder:${folder}/*`) // 👈 IMPORTANTE (buscar dentro del folder)
+      .sort_by("created_at", "desc")
+      .max_results(100)
+      .execute();
 
-    const files = fs
-      .readdirSync(uploadDir)
-      .filter((file) => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-      .map((file) => `/uploads/${folder ? folder + "/" : ""}${file}`);
+    const images = result.resources.map((img) => ({
+      url: img.secure_url,
+      public_id: img.public_id,
+    }));
 
-    return NextResponse.json({ images: files });
+    return new Response(JSON.stringify({ success: true, images }), { status: 200 });
   } catch (err) {
-    console.error("Error listando archivos:", err);
-    return NextResponse.json(
-      { error: "No se pudieron listar los archivos" },
-      { status: 500 }
-    );
+    console.error("Error listando fotos:", err);
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
   }
 }

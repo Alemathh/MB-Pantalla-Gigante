@@ -1,38 +1,53 @@
-import fs from "fs";
-import path from "path";
-import { NextResponse } from "next/server";
+export const runtime = "nodejs";
+
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req) {
   try {
-    const pendingDir = path.join(process.cwd(), "public/uploads/pending");
-
-    if (!fs.existsSync(pendingDir)) {
-      fs.mkdirSync(pendingDir, { recursive: true });
-      console.log("Se creó la carpeta pending");
-    }
-
     const formData = await req.formData();
     const file = formData.get("photo");
 
     if (!file) {
-      console.log("No llegó archivo al backend");
-      return NextResponse.json({ error: "No se recibió archivo" }, { status: 400 });
+      return Response.json(
+        { success: false, error: "No se recibió archivo" },
+        { status: 400 }
+      );
     }
 
-    const fileName = Date.now() + "-" + file.name.replace(/\s+/g, "_");
-    const filePath = path.join(pendingDir, fileName);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    fs.writeFileSync(filePath, buffer);
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "pending" },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
 
-    console.log("Archivo subido correctamente:", fileName);
-
-    return NextResponse.json({
-      success: true,
-      file: `/uploads/pending/${fileName}`,
+      uploadStream.end(buffer);
     });
+
+    return Response.json(
+      {
+        success: true,
+        url: result.secure_url,
+        public_id: result.public_id,
+      },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("Error subiendo archivo:", err);
-    return NextResponse.json({ error: "Error subiendo archivo" }, { status: 500 });
+    return Response.json(
+      { success: false, error: "Error subiendo archivo" },
+      { status: 500 }
+    );
   }
 }
