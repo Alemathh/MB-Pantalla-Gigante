@@ -8,7 +8,7 @@ cloudinary.config({
 
 export async function POST(req) {
   try {
-    const { public_id } = await req.json();
+    let { public_id } = await req.json();
 
     if (!public_id) {
       return new Response(
@@ -17,7 +17,11 @@ export async function POST(req) {
       );
     }
 
-    // 👉 Usar public_id tal cual viene (ya incluye pending/)
+    // Asegurarse de que parta de pending/
+    if (!public_id.startsWith("pending/")) {
+      public_id = `pending/${public_id}`;
+    }
+
     const newId = public_id.replace(/^pending\//, "approved/");
 
     const result = await cloudinary.uploader.rename(public_id, newId, { overwrite: true });
@@ -25,6 +29,9 @@ export async function POST(req) {
     return new Response(JSON.stringify({ success: true, result }), { status: 200 });
   } catch (err) {
     console.error("Error aprobando foto:", err);
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({ success: false, error: err.message }),
+      { status: 500 }
+    );
   }
 }
