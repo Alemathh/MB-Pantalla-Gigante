@@ -1,32 +1,59 @@
-import { v2 as cloudinary } from "cloudinary";
+"use client";
+import { useEffect, useState } from "react";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+export default function AdminPage() {
+  const [images, setImages] = useState([]);
+  const [folder, setFolder] = useState("pending");
 
-export async function GET(req) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const folder = searchParams.get("folder") || "pending";
+  const loadImages = async () => {
+    try {
+      const res = await fetch(`/api/list-uploads?folder=${folder}`);
+      const data = await res.json();
 
-    // Busca solo imágenes dentro del folder
-    const result = await cloudinary.search
-      .expression(`folder:${folder}`)
-      .sort_by("created_at", "desc")
-      .max_results(200)
-      .execute();
+      if (data.success) {
+        setImages(data.images);
+      } else {
+        console.error("Error al cargar imágenes:", data.error);
+      }
+    } catch (err) {
+      console.error("Error de fetch:", err);
+    }
+  };
 
-    const images = result.resources.map((r) => ({
-      url: r.secure_url,
-      public_id: r.public_id,
-      folder: r.folder,
-    }));
+  useEffect(() => {
+    loadImages();
+  }, [folder]);
 
-    return Response.json({ success: true, images });
-  } catch (err) {
-    console.error("Error listando imágenes:", err);
-    return Response.json({ success: false, error: err.message }, { status: 500 });
-  }
+  return (
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <h1>Panel Admin</h1>
+
+      <select
+        value={folder}
+        onChange={(e) => setFolder(e.target.value)}
+        style={{ padding: "8px", marginBottom: "20px" }}
+      >
+        <option value="pending">Pendientes</option>
+        <option value="approved">Aprobadas</option>
+      </select>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: "10px",
+        }}
+      >
+        {images.map((img) => (
+          <div key={img.public_id}>
+            <img
+              src={img.url}
+              alt="foto"
+              style={{ width: "100%", borderRadius: "8px" }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
