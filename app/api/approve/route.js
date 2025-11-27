@@ -14,10 +14,11 @@ export async function POST(req) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    const oldId = `pending/${public_id}`;
-    const newId = `approved/${public_id}`;
+    const newPublicId = public_id.replace("pending/", "approved/");
 
-    const result = await cloudinary.uploader.rename(oldId, newId, { overwrite: true });
+    const result = await cloudinary.uploader.rename(public_id, newPublicId, {
+      overwrite: true,
+    });
 
     return new Response(JSON.stringify({ success: true, result }), { status: 200 });
   } catch (err) {
