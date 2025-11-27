@@ -8,14 +8,19 @@ cloudinary.config({
 
 export async function POST(req) {
   try {
-    const { public_id } = await req.json();
+    let { public_id } = await req.json();
 
     if (!public_id) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    // Renombrar desde pending/... a approved/...
+    // 👇 Asegurarse de que parta de pending/
+    if (!public_id.startsWith("pending/")) {
+      public_id = `pending/${public_id}`;
+    }
+
     const newId = public_id.replace("pending/", "approved/");
+
     const result = await cloudinary.uploader.rename(public_id, newId, { overwrite: true });
 
     return new Response(JSON.stringify({ success: true, result }), { status: 200 });
