@@ -14,9 +14,11 @@ export async function POST(req) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    const newPublicId = public_id.replace("pending/", "approved/");
+    // 👇 Agregar siempre el folder original
+    const originalId = `pending/${public_id}`;
+    const newId = `approved/${public_id}`;
 
-    const result = await cloudinary.uploader.rename(public_id, newPublicId, {
+    const result = await cloudinary.uploader.rename(originalId, newId, {
       overwrite: true,
     });
 
