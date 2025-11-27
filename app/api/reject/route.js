@@ -14,10 +14,8 @@ export async function POST(req) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    // 👇 Destruye siempre desde la carpeta pending
-    const idToDelete = `pending/${public_id}`;
-
-    await cloudinary.uploader.destroy(idToDelete);
+    // Eliminar el public_id exacto
+    await cloudinary.uploader.destroy(public_id);
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {

@@ -14,10 +14,7 @@ export async function POST(req) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    // 👇 Siempre viene de la carpeta approved
-    const idToDelete = `approved/${public_id}`;
-
-    await cloudinary.uploader.destroy(idToDelete);
+    await cloudinary.uploader.destroy(public_id);
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {

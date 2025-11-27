@@ -8,6 +8,7 @@ export default function AdminPage() {
   const [approvedPhotos, setApprovedPhotos] = useState([]);
   const [activeTab, setActiveTab] = useState("pendientes");
 
+  // 🔄 Cargar fotos
   const fetchPhotos = async () => {
     try {
       const resPending = await fetch("/api/list-uploads?folder=pending");
@@ -26,6 +27,7 @@ export default function AdminPage() {
     fetchPhotos();
   }, []);
 
+  // ✅ Aprobar foto
   const aprobarFoto = async (public_id) => {
     try {
       const res = await fetch("/api/approve", {
@@ -33,19 +35,16 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ public_id }),
       });
-
       const data = await res.json();
-      if (data.success) {
-        fetchPhotos();
-      } else {
-        alert("No se pudo aprobar: " + data.error);
-      }
+      if (data.success) fetchPhotos();
+      else alert("No se pudo aprobar: " + data.error);
     } catch (err) {
       console.error(err);
       alert("Error aprobando la foto");
     }
   };
 
+  // ✅ Rechazar foto
   const rechazarFoto = async (public_id) => {
     try {
       const res = await fetch("/api/reject", {
@@ -53,27 +52,27 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ public_id }),
       });
-
       const data = await res.json();
       if (data.success) fetchPhotos();
+      else alert("No se pudo rechazar: " + data.error);
     } catch (err) {
       console.error(err);
       alert("Error rechazando la foto");
     }
   };
 
+  // ✅ Borrar foto aprobada
   const borrarFoto = async (public_id) => {
     if (!confirm("¿Borrar esta foto?")) return;
-
     try {
       const res = await fetch("/api/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ public_id }),
       });
-
       const data = await res.json();
       if (data.success) fetchPhotos();
+      else alert("No se pudo borrar: " + data.error);
     } catch (err) {
       console.error(err);
       alert("Error borrando la foto");
@@ -81,44 +80,25 @@ export default function AdminPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: "40px",
-        background: "#f7f8fa",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
+    <div style={{ minHeight: "100vh", padding: "40px", background: "#f7f8fa", fontFamily: "Arial, sans-serif" }}>
       <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>
         🖼️ Admin - Fotos
       </h1>
 
+      {/* Botón QR */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <a
           href={config.urlQR || "/qr"}
           target="_blank"
           rel="noopener noreferrer"
-          style={{
-            padding: "10px 20px",
-            background: "#0070f3",
-            color: "#fff",
-            borderRadius: "8px",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
+          style={{ padding: "10px 20px", background: "#0070f3", color: "#fff", borderRadius: "8px", textDecoration: "none", fontWeight: "bold" }}
         >
           🔳 Generar QR
         </a>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "20px",
-          marginBottom: "30px",
-        }}
-      >
+      {/* Tabs */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "30px" }}>
         <button
           onClick={() => setActiveTab("pendientes")}
           style={{
@@ -150,59 +130,19 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* PENDIENTES */}
+      {/* LISTA PENDIENTES */}
       {activeTab === "pendientes" && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-            gap: "15px",
-            justifyItems: "center",
-          }}
-        >
-          {pendingPhotos.length === 0 && (
-            <p style={{ color: "#555" }}>No hay fotos pendientes</p>
-          )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", justifyItems: "center" }}>
+          {pendingPhotos.length === 0 && <p style={{ color: "#555" }}>No hay fotos pendientes</p>}
 
           {pendingPhotos.map((photo, idx) => (
             <div key={idx} style={{ textAlign: "center" }}>
-              <img
-                src={photo.url}
-                style={{
-                  width: "150px",
-                  height: "150px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                  boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
-                }}
-              />
-
-              <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-                <button
-                  onClick={() => aprobarFoto(photo.public_id)}
-                  style={{
-                    padding: "5px 10px",
-                    background: "#28a745",
-                    color: "#fff",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
+              <img src={photo.url} alt={`Pendiente ${idx + 1}`} style={{ width: "150px", height: "150px", objectFit: "cover", borderRadius: "12px", boxShadow: "0 3px 6px rgba(0,0,0,0.1)" }} />
+              <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "5px" }}>
+                <button onClick={() => aprobarFoto(photo.public_id)} style={{ padding: "5px 10px", background: "#28a745", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer" }}>
                   Aprobar
                 </button>
-
-                <button
-                  onClick={() => rechazarFoto(photo.public_id)}
-                  style={{
-                    padding: "5px 10px",
-                    background: "#dc3545",
-                    color: "#fff",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
+                <button onClick={() => rechazarFoto(photo.public_id)} style={{ padding: "5px 10px", background: "#dc3545", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer" }}>
                   Rechazar
                 </button>
               </div>
@@ -211,45 +151,15 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* APROBADAS */}
+      {/* LISTA APROBADAS */}
       {activeTab === "aprobadas" && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-            gap: "15px",
-            justifyItems: "center",
-          }}
-        >
-          {approvedPhotos.length === 0 && (
-            <p style={{ color: "#555" }}>No hay fotos aprobadas</p>
-          )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", justifyItems: "center" }}>
+          {approvedPhotos.length === 0 && <p style={{ color: "#555" }}>No hay fotos aprobadas</p>}
 
           {approvedPhotos.map((photo, idx) => (
             <div key={idx} style={{ textAlign: "center" }}>
-              <img
-                src={photo.url}
-                style={{
-                  width: "150px",
-                  height: "150px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                  boxShadow: "0 3px 6px rgba(0,0,0,0.1)",
-                }}
-              />
-
-              <button
-                onClick={() => borrarFoto(photo.public_id)}
-                style={{
-                  marginTop: "5px",
-                  padding: "5px 10px",
-                  background: "#dc3545",
-                  color: "#fff",
-                  borderRadius: "6px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
+              <img src={photo.url} alt={`Aprobada ${idx + 1}`} style={{ width: "150px", height: "150px", objectFit: "cover", borderRadius: "12px", boxShadow: "0 3px 6px rgba(0,0,0,0.1)" }} />
+              <button onClick={() => borrarFoto(photo.public_id)} style={{ marginTop: "5px", padding: "5px 10px", background: "#dc3545", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer" }}>
                 Borrar
               </button>
             </div>

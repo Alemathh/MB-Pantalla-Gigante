@@ -9,8 +9,7 @@ cloudinary.config({
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const folder =
-      searchParams.get("folder") === "pending" ? "pending" : "approved";
+    const folder = searchParams.get("folder") === "pending" ? "pending" : "approved";
 
     const result = await cloudinary.search
       .expression(`folder:${folder}`)
@@ -20,17 +19,12 @@ export async function GET(req) {
 
     const images = result.resources.map((img) => ({
       url: img.secure_url,
-      public_id: img.public_id, // 👈 Mantenemos el public_id exacto, SIN tocarlo
+      public_id: img.public_id, // 🚨 Mantener exacto
     }));
 
-    return new Response(JSON.stringify({ success: true, images }), {
-      status: 200,
-    });
+    return new Response(JSON.stringify({ success: true, images }), { status: 200 });
   } catch (err) {
     console.error("Error listando fotos:", err);
-    return new Response(
-      JSON.stringify({ success: false, error: err.message }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
   }
 }
