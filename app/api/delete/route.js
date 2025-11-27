@@ -8,14 +8,13 @@ cloudinary.config({
 
 export async function POST(req) {
   try {
-    const { public_id } = await req.json(); // recibir public_id de la foto
+    const { public_id } = await req.json();
 
     if (!public_id) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    // Eliminar la imagen de Cloudinary
-    await cloudinary.uploader.destroy(public_id);
+    await cloudinary.uploader.destroy(`approved/${public_id}`);
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (err) {

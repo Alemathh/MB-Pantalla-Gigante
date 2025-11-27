@@ -12,14 +12,14 @@ export async function GET(req) {
     const folder = searchParams.get("folder") === "pending" ? "pending" : "approved";
 
     const result = await cloudinary.search
-      .expression(`folder:${folder}/*`) // 👈 IMPORTANTE (buscar dentro del folder)
+      .expression(`folder:${folder}`)
       .sort_by("created_at", "desc")
-      .max_results(100)
+      .max_results(200)
       .execute();
 
     const images = result.resources.map((img) => ({
       url: img.secure_url,
-      public_id: img.public_id,
+      public_id: img.public_id.replace(`${folder}/`, ""), // 👈 Sacamos el folder
     }));
 
     return new Response(JSON.stringify({ success: true, images }), { status: 200 });
