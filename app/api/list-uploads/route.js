@@ -9,7 +9,8 @@ cloudinary.config({
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const folder = searchParams.get("folder") === "pending" ? "pending" : "approved";
+    const folder =
+      searchParams.get("folder") === "pending" ? "pending" : "approved";
 
     const result = await cloudinary.search
       .expression(`folder:${folder}`)
@@ -17,21 +18,19 @@ export async function GET(req) {
       .max_results(200)
       .execute();
 
-    const images = result.resources.map((img) => {
-      // Sanear public_id aunque Cloudinary lo devuelva mal
-      const cleanId = img.public_id.includes("/")
-        ? img.public_id.split("/").pop()
-        : img.public_id;
+    const images = result.resources.map((img) => ({
+      url: img.secure_url,
+      public_id: img.public_id, // 👈 Mantenemos el public_id exacto, SIN tocarlo
+    }));
 
-      return {
-        url: img.secure_url,
-        public_id: cleanId,
-      };
+    return new Response(JSON.stringify({ success: true, images }), {
+      status: 200,
     });
-
-    return new Response(JSON.stringify({ success: true, images }), { status: 200 });
   } catch (err) {
     console.error("Error listando fotos:", err);
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+    return new Response(
+      JSON.stringify({ success: false, error: err.message }),
+      { status: 500 }
+    );
   }
 }
