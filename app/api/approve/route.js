@@ -17,21 +17,34 @@ export async function POST(req) {
       );
     }
 
-    // Si ya está aprobado, no hacer nada
-    if (public_id.startsWith("approved/")) {
+    // Verificar existencia en Cloudinary
+    let resource;
+    try {
+      resource = await cloudinary.api.resource(public_id);
+    } catch (err) {
+      return new Response(
+        JSON.stringify({ success: false, error: "La foto no existe en Cloudinary" }),
+        { status: 404 }
+      );
+    }
+
+    // Si ya está aprobado, no mover
+    if (resource.folder === "approved") {
       return new Response(
         JSON.stringify({ success: true, message: "Foto ya aprobada" }),
         { status: 200 }
       );
     }
 
-    // Asegurarse de que parta de pending/
-    if (!public_id.startsWith("pending/")) {
-      public_id = `pending/${public_id}`;
+    // Solo mover si está en pending
+    if (resource.folder !== "pending") {
+      return new Response(
+        JSON.stringify({ success: false, error: `Foto en carpeta inesperada: ${resource.folder}` }),
+        { status: 400 }
+      );
     }
 
     const newId = public_id.replace(/^pending\//, "approved/");
-
     const result = await cloudinary.uploader.rename(public_id, newId, { overwrite: true });
 
     return new Response(JSON.stringify({ success: true, result }), { status: 200 });

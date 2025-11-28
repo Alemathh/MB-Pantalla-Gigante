@@ -14,7 +14,13 @@ export async function POST(req) {
       return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
     }
 
-    // Eliminar el public_id exacto
+    // Verificar existencia en Cloudinary
+    try {
+      await cloudinary.api.resource(public_id);
+    } catch (err) {
+      return new Response(JSON.stringify({ success: false, error: "La foto no existe en Cloudinary" }), { status: 404 });
+    }
+
     await cloudinary.uploader.destroy(public_id);
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
