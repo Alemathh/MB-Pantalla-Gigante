@@ -8,7 +8,6 @@ export default function AdminPage() {
   const [approvedPhotos, setApprovedPhotos] = useState([]);
   const [activeTab, setActiveTab] = useState("pendientes");
 
-  // 🔄 Cargar fotos
   const fetchPhotos = async () => {
     try {
       const resPending = await fetch("/api/list-uploads?folder=pending");
@@ -81,9 +80,7 @@ export default function AdminPage() {
 
   return (
     <div style={{ minHeight: "100vh", padding: "40px", background: "#f7f8fa", fontFamily: "Arial, sans-serif" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>
-        🖼️ Admin - Fotos
-      </h1>
+      <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>🖼️ Admin - Fotos</h1>
 
       {/* Botón QR */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>

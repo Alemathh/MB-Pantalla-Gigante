@@ -17,11 +17,16 @@ export async function GET(req) {
       .max_results(200)
       .execute();
 
-    // ✅ Mantener exacto public_id tal cual Cloudinary lo devuelve
-    const images = result.resources.map((img) => ({
-      url: img.secure_url,
-      public_id: img.public_id,
-    }));
+    // ✅ Filtro extra: evitar que fotos aprobadas aparezcan en pendientes
+    const images = result.resources
+      .filter(img => {
+        if (folder === "pending") return !img.public_id.startsWith("approved/");
+        return true;
+      })
+      .map(img => ({
+        url: img.secure_url,
+        public_id: img.public_id,
+      }));
 
     return new Response(JSON.stringify({ success: true, images }), { status: 200 });
   } catch (err) {
