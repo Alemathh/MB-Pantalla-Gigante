@@ -17,7 +17,12 @@ export async function POST(req) {
       );
     }
 
-    // Verificar existencia en Cloudinary
+    // Asegurar path correcto
+    if (!public_id.startsWith("pending/") && !public_id.startsWith("approved/")) {
+      public_id = `pending/${public_id}`;
+    }
+
+    // Obtener info real desde Cloudinary
     let resource;
     try {
       resource = await cloudinary.api.resource(public_id);
@@ -28,26 +33,35 @@ export async function POST(req) {
       );
     }
 
-    // Si ya está aprobado, no mover
-    if (resource.folder === "approved") {
+    // SI YA ESTÁ APROBADA
+    if (public_id.startsWith("approved/")) {
       return new Response(
         JSON.stringify({ success: true, message: "Foto ya aprobada" }),
         { status: 200 }
       );
     }
 
-    // Solo mover si está en pending
-    if (resource.folder !== "pending") {
+    // SI NO ES DE pending → error
+    if (!public_id.startsWith("pending/")) {
       return new Response(
-        JSON.stringify({ success: false, error: `Foto en carpeta inesperada: ${resource.folder}` }),
+        JSON.stringify({
+          success: false,
+          error: `Foto en carpeta inesperada. Public_id actual: ${public_id}`,
+        }),
         { status: 400 }
       );
     }
 
-    const newId = public_id.replace(/^pending\//, "approved/");
-    const result = await cloudinary.uploader.rename(public_id, newId, { overwrite: true });
+    // Renombrar a carpeta approved/
+    const newId = public_id.replace("pending/", "approved/");
 
-    return new Response(JSON.stringify({ success: true, result }), { status: 200 });
+    const result = await cloudinary.uploader.rename(public_id, newId, {
+      overwrite: true,
+    });
+
+    return new Response(JSON.stringify({ success: true, result }), {
+      status: 200,
+    });
   } catch (err) {
     console.error("Error aprobando foto:", err);
     return new Response(

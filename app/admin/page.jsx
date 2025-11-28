@@ -26,7 +26,6 @@ export default function AdminPage() {
     fetchPhotos();
   }, []);
 
-  // ✅ Aprobar foto
   const aprobarFoto = async (public_id) => {
     try {
       const res = await fetch("/api/approve", {
@@ -43,7 +42,6 @@ export default function AdminPage() {
     }
   };
 
-  // ✅ Rechazar foto
   const rechazarFoto = async (public_id) => {
     try {
       const res = await fetch("/api/reject", {
@@ -60,7 +58,6 @@ export default function AdminPage() {
     }
   };
 
-  // ✅ Borrar foto aprobada
   const borrarFoto = async (public_id) => {
     if (!confirm("¿Borrar esta foto?")) return;
     try {
@@ -82,7 +79,6 @@ export default function AdminPage() {
     <div style={{ minHeight: "100vh", padding: "40px", background: "#f7f8fa", fontFamily: "Arial, sans-serif" }}>
       <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>🖼️ Admin - Fotos</h1>
 
-      {/* Botón QR */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <a
           href={config.urlQR || "/qr"}
@@ -94,7 +90,6 @@ export default function AdminPage() {
         </a>
       </div>
 
-      {/* Tabs */}
       <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "30px" }}>
         <button
           onClick={() => setActiveTab("pendientes")}
@@ -127,7 +122,6 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* LISTA PENDIENTES */}
       {activeTab === "pendientes" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", justifyItems: "center" }}>
           {pendingPhotos.length === 0 && <p style={{ color: "#555" }}>No hay fotos pendientes</p>}
@@ -148,7 +142,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* LISTA APROBADAS */}
       {activeTab === "aprobadas" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", justifyItems: "center" }}>
           {approvedPhotos.length === 0 && <p style={{ color: "#555" }}>No hay fotos aprobadas</p>}
