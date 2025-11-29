@@ -9,31 +9,19 @@ cloudinary.config({
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const folder = searchParams.get("folder") === "pending" ? "pending" : "approved";
+    const folder = searchParams.get("folder") || ""; // ⬅️ FIX: evita error si no viene el parámetro
 
     const result = await cloudinary.search
-      .expression(`folder:${folder}`)
-      .sort_by("created_at", "desc")
+      .expression(`folder:${folder}*`) // función segura
+      .sort_by("public_id", "desc")
       .max_results(200)
       .execute();
 
-    // ✅ Filtro extra: evitar que fotos aprobadas aparezcan en pendientes
-    const images = result.resources
-      .filter(img => {
-        if (folder === "pending") return !img.public_id.startsWith("approved/");
-        return true;
-      })
-      .map(img => ({
-        url: img.secure_url,
-        public_id: img.public_id,
-      }));
+    const images = result.resources.map((img) => img.secure_url);
 
-    return new Response(JSON.stringify({ success: true, images }), { status: 200 });
+    return Response.json({ images });
   } catch (err) {
-    console.error("Error listando fotos:", err);
-    return new Response(
-      JSON.stringify({ success: false, error: err.message }),
-      { status: 500 }
-    );
+    console.error("Error listando imágenes:", err);
+    return Response.json({ images: [], error: true });
   }
 }

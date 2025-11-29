@@ -8,24 +8,21 @@ cloudinary.config({
 
 export async function POST(req) {
   try {
-    const { public_id } = await req.json();
+    let { public_id } = await req.json();
 
     if (!public_id) {
-      return new Response(JSON.stringify({ success: false, error: "No se proporcionó public_id" }), { status: 400 });
+      return Response.json({ success: false, error: "No se proporcionó public_id" }, { status: 400 });
     }
 
-    // Verificar existencia en Cloudinary
-    try {
-      await cloudinary.api.resource(public_id);
-    } catch (err) {
-      return new Response(JSON.stringify({ success: false, error: "La foto no existe en Cloudinary" }), { status: 404 });
-    }
+    if (!public_id.includes("/")) public_id = `pending/${public_id}`;
+
+    await cloudinary.api.resource(public_id);
 
     await cloudinary.uploader.destroy(public_id);
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
+    return Response.json({ success: true });
   } catch (err) {
     console.error("Error rechazando foto:", err);
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+    return Response.json({ success: false, error: err.message }, { status: 500 });
   }
 }

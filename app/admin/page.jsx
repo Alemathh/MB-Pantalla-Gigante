@@ -1,24 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import config from "../../config.json";
+import Image from "next/image";
 
-export default function AdminPage() {
+export default function Page() {
   const [pendingPhotos, setPendingPhotos] = useState([]);
   const [approvedPhotos, setApprovedPhotos] = useState([]);
-  const [activeTab, setActiveTab] = useState("pendientes");
 
   const fetchPhotos = async () => {
     try {
-      const resPending = await fetch("/api/list-uploads?folder=pending");
-      const dataPending = await resPending.json();
-      setPendingPhotos(dataPending.images || []);
+      const [pendingRes, approvedRes] = await Promise.all([
+        fetch("/api/list-uploads?folder=pending"),
+        fetch("/api/list-uploads?folder=approved"),
+      ]);
 
-      const resApproved = await fetch("/api/list-uploads?folder=approved");
-      const dataApproved = await resApproved.json();
-      setApprovedPhotos(dataApproved.images || []);
-    } catch (err) {
-      console.error("Error al cargar fotos:", err);
+      const pendingData = await pendingRes.json();
+      const approvedData = await approvedRes.json();
+
+      setPendingPhotos(pendingData.images || []);
+      setApprovedPhotos(approvedData.images || []);
+    } catch (error) {
+      console.error("Error cargando fotos:", error);
     }
   };
 
@@ -26,136 +28,115 @@ export default function AdminPage() {
     fetchPhotos();
   }, []);
 
-  const aprobarFoto = async (public_id) => {
+  const aprobarFoto = async (publicId) => {
     try {
-      const res = await fetch("/api/approve", {
+      const res = await fetch("/api/approve-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ public_id }),
+        body: JSON.stringify({ public_id: publicId }),
       });
+
       const data = await res.json();
-      if (data.success) fetchPhotos();
-      else alert("No se pudo aprobar: " + data.error);
+      if (!res.ok) throw new Error(data.error);
+
+      fetchPhotos();
     } catch (err) {
-      console.error(err);
-      alert("Error aprobando la foto");
+      alert("Error: " + err.message);
     }
   };
 
-  const rechazarFoto = async (public_id) => {
+  const rechazarFoto = async (publicId) => {
     try {
-      const res = await fetch("/api/reject", {
+      const res = await fetch("/api/reject-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ public_id }),
+        body: JSON.stringify({ public_id: publicId }),
       });
+
       const data = await res.json();
-      if (data.success) fetchPhotos();
-      else alert("No se pudo rechazar: " + data.error);
+      if (!res.ok) throw new Error(data.error);
+
+      fetchPhotos();
     } catch (err) {
-      console.error(err);
-      alert("Error rechazando la foto");
+      alert("Error: " + err.message);
     }
   };
 
-  const borrarFoto = async (public_id) => {
-    if (!confirm("¿Borrar esta foto?")) return;
+  const borrarFoto = async (publicId) => {
     try {
-      const res = await fetch("/api/delete", {
+      const res = await fetch("/api/delete-upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ public_id }),
+        body: JSON.stringify({ public_id: publicId }),
       });
+
       const data = await res.json();
-      if (data.success) fetchPhotos();
-      else alert("No se pudo borrar: " + data.error);
+      if (!res.ok) throw new Error(data.error);
+
+      fetchPhotos();
     } catch (err) {
-      console.error(err);
-      alert("Error borrando la foto");
+      alert("Error: " + err.message);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", padding: "40px", background: "#f7f8fa", fontFamily: "Arial, sans-serif" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "30px", color: "#333" }}>🖼️ Admin - Fotos</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">Panel de Administración</h1>
 
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
-        <a
-          href={config.urlQR || "/qr"}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ padding: "10px 20px", background: "#0070f3", color: "#fff", borderRadius: "8px", textDecoration: "none", fontWeight: "bold" }}
-        >
-          🔳 Generar QR
-        </a>
-      </div>
+      {/* Pendientes */}
+      <h2 className="text-2xl mb-4">Pendientes</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {pendingPhotos.map((photo) => (
+          <div key={photo.public_id} className="border p-2 rounded">
+            <Image
+              src={photo.secure_url}
+              width={300}
+              height={300}
+              className="rounded"
+              alt=""
+            />
 
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginBottom: "30px" }}>
-        <button
-          onClick={() => setActiveTab("pendientes")}
-          style={{
-            padding: "10px 20px",
-            borderRadius: "8px",
-            background: activeTab === "pendientes" ? "#0070f3" : "#e0e0e0",
-            color: activeTab === "pendientes" ? "#fff" : "#555",
-            fontWeight: "bold",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Pendientes
-        </button>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={() => aprobarFoto(photo.public_id)}
+                className="bg-green-500 text-white px-3 py-1 rounded"
+              >
+                Aprobar
+              </button>
 
-        <button
-          onClick={() => setActiveTab("aprobadas")}
-          style={{
-            padding: "10px 20px",
-            borderRadius: "8px",
-            background: activeTab === "aprobadas" ? "#0070f3" : "#e0e0e0",
-            color: activeTab === "aprobadas" ? "#fff" : "#555",
-            fontWeight: "bold",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Aprobadas
-        </button>
-      </div>
-
-      {activeTab === "pendientes" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", justifyItems: "center" }}>
-          {pendingPhotos.length === 0 && <p style={{ color: "#555" }}>No hay fotos pendientes</p>}
-
-          {pendingPhotos.map((photo, idx) => (
-            <div key={idx} style={{ textAlign: "center" }}>
-              <img src={photo.url} alt={`Pendiente ${idx + 1}`} style={{ width: "150px", height: "150px", objectFit: "cover", borderRadius: "12px", boxShadow: "0 3px 6px rgba(0,0,0,0.1)" }} />
-              <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "5px" }}>
-                <button onClick={() => aprobarFoto(photo.public_id)} style={{ padding: "5px 10px", background: "#28a745", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer" }}>
-                  Aprobar
-                </button>
-                <button onClick={() => rechazarFoto(photo.public_id)} style={{ padding: "5px 10px", background: "#dc3545", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer" }}>
-                  Rechazar
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {activeTab === "aprobadas" && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "15px", justifyItems: "center" }}>
-          {approvedPhotos.length === 0 && <p style={{ color: "#555" }}>No hay fotos aprobadas</p>}
-
-          {approvedPhotos.map((photo, idx) => (
-            <div key={idx} style={{ textAlign: "center" }}>
-              <img src={photo.url} alt={`Aprobada ${idx + 1}`} style={{ width: "150px", height: "150px", objectFit: "cover", borderRadius: "12px", boxShadow: "0 3px 6px rgba(0,0,0,0.1)" }} />
-              <button onClick={() => borrarFoto(photo.public_id)} style={{ marginTop: "5px", padding: "5px 10px", background: "#dc3545", color: "#fff", borderRadius: "6px", border: "none", cursor: "pointer" }}>
-                Borrar
+              <button
+                onClick={() => rechazarFoto(photo.public_id)}
+                className="bg-red-500 text-white px-3 py-1 rounded"
+              >
+                Rechazar
               </button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
+
+      {/* Aprobadas */}
+      <h2 className="text-2xl mt-10 mb-4">Aprobadas</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {approvedPhotos.map((photo) => (
+          <div key={photo.public_id} className="border p-2 rounded">
+            <Image
+              src={photo.secure_url}
+              width={300}
+              height={300}
+              className="rounded"
+              alt=""
+            />
+
+            <button
+              onClick={() => borrarFoto(photo.public_id)}
+              className="bg-red-600 text-white px-3 py-1 mt-3 rounded"
+            >
+              Borrar
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

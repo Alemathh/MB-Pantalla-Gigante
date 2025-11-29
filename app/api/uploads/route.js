@@ -14,10 +14,7 @@ export async function POST(req) {
     const file = formData.get("photo");
 
     if (!file) {
-      return Response.json(
-        { success: false, error: "No se recibió archivo" },
-        { status: 400 }
-      );
+      return Response.json({ success: false, error: "No se recibió archivo" }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -26,28 +23,19 @@ export async function POST(req) {
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: "pending" },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
+        (error, result) => (error ? reject(error) : resolve(result))
       );
 
       uploadStream.end(buffer);
     });
 
-    return Response.json(
-      {
-        success: true,
-        url: result.secure_url,
-        public_id: result.public_id,
-      },
-      { status: 200 }
-    );
+    return Response.json({
+      success: true,
+      url: result.secure_url,
+      public_id: result.public_id,
+    });
   } catch (err) {
     console.error("Error subiendo archivo:", err);
-    return Response.json(
-      { success: false, error: "Error subiendo archivo" },
-      { status: 500 }
-    );
+    return Response.json({ success: false, error: "Error subiendo archivo" }, { status: 500 });
   }
 }
